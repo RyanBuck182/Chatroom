@@ -24,7 +24,7 @@ class Terminal:
         """Initialize an interface for the terminal."""
         self._max_line_len = max_line_len
 
-    def print_inlines(self, msg: str, color: TerminalColor = None) -> None:
+    def print_inline(self, msg: str, color: TerminalColor = None) -> None:
         """Print a message without a terminating newline."""
         # Apply color
         if color:
@@ -36,7 +36,7 @@ class Terminal:
         # Print the message without a newline at the end
         print(msg, end="")
 
-    def print_lines(self, msg: str, color: TerminalColor = None) -> None:
+    def print_line(self, msg: str, color: TerminalColor = None) -> None:
         """Print a message with a terminating newline."""
         self.print_inlines(msg, color)
         print()
