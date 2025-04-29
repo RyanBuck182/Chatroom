@@ -1,4 +1,5 @@
 import json
+from typing import NoReturn
 
 from shared.config import HOST, WRITE_PORT, READ_PORT
 from shared.framed_server_socket import FramedServerSocket
@@ -17,7 +18,7 @@ class ChatServer:
         # Stores users and their connection sockets
         self.users: dict[str, FramedSocket] = dict()
 
-    def start(self):
+    def start(self) -> None:
         # Receive connections forever, storing them to send messages to later
         self.write_sock.start_server(
             connection_handler=self._handle_write_conn
@@ -28,7 +29,7 @@ class ChatServer:
             connection_handler=self._handle_read_conn
         )
 
-    def _handle_write_conn(self, conn: FramedSocket):
+    def _handle_write_conn(self, conn: FramedSocket) -> None:
         """Handle a connection from a client's receiving socket."""
         msg = conn.recv_msg()
         msg_dict = json.loads(msg)
@@ -36,12 +37,12 @@ class ChatServer:
 
         self._add_user(username, conn)
 
-    def _handle_read_conn(self, conn: FramedSocket):
+    def _handle_read_conn(self, conn: FramedSocket) -> NoReturn:
         """Handle a connection from a client's sending socket."""
         # Receive messages from the client until they disconnect.
         conn.receive_msg_forever(self._handle_read_msg)
 
-    def _handle_read_msg(self, msg: str):
+    def _handle_read_msg(self, msg: str) -> None:
         """Handle a message sent from a client."""
         msg_dict = json.loads(msg)
 
@@ -54,16 +55,16 @@ class ChatServer:
             case "PRIVATE":
                 self._forward_one(msg, msg_dict["recipient"])
 
-    def _forward_all(self, msg: str):
+    def _forward_all(self, msg: str) -> None:
         for conn in self.users.values():
             conn.send_msg(msg)
 
-    def _forward_one(self, msg: str, recipient: str):
+    def _forward_one(self, msg: str, recipient: str) -> None:
         conn = self.users[recipient]
         conn.send_msg(msg)
 
-    def _add_user(self, username: str, conn: FramedSocket):
+    def _add_user(self, username: str, conn: FramedSocket) -> None:
         self.users[username] = conn
 
-    def _remove_user(self, username: str):
+    def _remove_user(self, username: str) -> None:
         self.users.pop(username)
