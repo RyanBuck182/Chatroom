@@ -8,7 +8,7 @@ from shared.framed_socket import FramedSocket
 
 class ChatServer:
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Sends messages to the connected clients
         self.write_sock = FramedServerSocket((HOST, WRITE_PORT))
 
