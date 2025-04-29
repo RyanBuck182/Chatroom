@@ -2,7 +2,7 @@
 
 import socket
 import threading
-from typing import Callable
+from typing import Callable, NoReturn
 
 from framed_socket import FramedSocket
 
@@ -10,20 +10,26 @@ from framed_socket import FramedSocket
 class FramedServerSocket:
     """A multi-threaded TCP server utilizing framed sockets."""
 
-    def __init__(self, addr: tuple[str, int], sock: socket.socket = None):
+    def __init__(
+            self, addr: tuple[str, int], sock: socket.socket = None
+    ) -> None:
         self._sock = sock or socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._addr = addr
 
         # Bind the socket to the specified address
         self._sock.bind(self._addr)
 
-    def start_server(self, connection_handler: Callable[[FramedSocket], None]):
+    def start_server(
+            self, connection_handler: Callable[[FramedSocket], None]
+    ) -> None:
         recv_thread = threading.Thread(
             target=self._receive_conn_forever, args=(connection_handler,)
         )
         recv_thread.start()
 
-    def _receive_conn_forever(self, handler: Callable[[FramedSocket], None]):
+    def _receive_conn_forever(
+            self, handler: Callable[[FramedSocket], None]
+    ) -> NoReturn:
         """"""
         self._sock.listen()
         while True:

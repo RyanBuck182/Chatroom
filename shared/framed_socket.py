@@ -1,5 +1,5 @@
 import socket
-from typing import Callable
+from typing import Callable, NoReturn
 
 from config import FRAME_BYTES, ENCODING
 
@@ -17,7 +17,7 @@ class FramedSocket:
             sock: socket.socket = None,
             frame_bytes: int = FRAME_BYTES,
             encoding: str = ENCODING
-    ):
+    ) -> None:
         self._addr = addr
         self._sock = sock or socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._frame_bytes = frame_bytes
@@ -26,7 +26,7 @@ class FramedSocket:
         # Connect to the specified address
         self._sock.connect(self._addr)
 
-    def receive_msg_forever(self, handler: Callable[[str], None]) -> None:
+    def receive_msg_forever(self, handler: Callable[[str], None]) -> NoReturn:
         """"""
         while True:
             msg = self.recv_msg()
@@ -63,5 +63,5 @@ class FramedSocket:
         # Send the message
         self._sock.sendall(framed_msg)
 
-    def close(self):
+    def close(self) -> None:
         self._sock.close()
