@@ -1,3 +1,0 @@
-HOST = "localhost"
-SEND_PORT = 15001
-RECV_PORT = 15002
