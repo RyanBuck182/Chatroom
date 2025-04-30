@@ -11,6 +11,10 @@ from shared.framed_socket import FramedSocket
 class ChatClient:
     """A multithreaded client to send and receive chatroom messages."""
 
+    class ManualMessageSendError(Exception):
+        """Message that should only be sent by the class was sent manually."""
+        pass
+
     def __init__(self, username: str) -> None:
         """Initialize the chat client."""
         self.username = username
@@ -56,6 +60,25 @@ class ChatClient:
     def on_receive_message(self, listener: Callable[[str], None]) -> None:
         """Add a listener for receiving messages."""
         self._recv_msg_listeners.append(listener)
+
+    def send_from_dict(self, msg_dict: dict) -> None:
+        """Send a message from dictionary data."""
+        msg_type = msg_dict["type"]
+
+        match msg_type.upper():
+            case "BROADCAST":
+                msg = msg_dict["message"]
+                self.send_broadcast(msg)
+            case "PRIVATE":
+                msg = msg_dict["message"]
+                recipient = msg_dict["recipient"]
+                self.send_private(msg, recipient)
+            case "START" | "EXIT":
+                raise self.ManualMessageSendError(
+                    "Start and exit should be called through their respective"
+                    " functions, the message should not be sent manually from"
+                    " outside the class."
+                )
 
     def send_broadcast(self, msg: str) -> None:
         """Send a broadcast message to all recipients."""
