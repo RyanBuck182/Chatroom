@@ -1,3 +1,5 @@
+"""Defines FramedSocket, a length prefixed TCP socket."""
+
 import socket
 from typing import Callable, NoReturn
 
@@ -18,6 +20,7 @@ class FramedSocket:
             frame_bytes: int = FRAME_BYTES,
             encoding: str = ENCODING
     ) -> None:
+        """Initialize the FramedSocket."""
         self._addr = addr
         self._sock = sock or socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._frame_bytes = frame_bytes
@@ -27,12 +30,13 @@ class FramedSocket:
         self._sock.connect(self._addr)
 
     def receive_msg_forever(self, handler: Callable[[str], None]) -> NoReturn:
-        """"""
+        """Receive messages forever, passing them to a handler."""
         while True:
             msg = self.recv_msg()
             handler(msg)
 
     def recv_msg(self) -> str:
+        """Receive an entire framed message."""
         # Get the expected length of the message
         msg_len = int.from_bytes(
             self._sock.recv(self._frame_bytes),
@@ -53,6 +57,7 @@ class FramedSocket:
         return full_msg.decode("utf-8")
 
     def send_msg(self, msg: str):
+        """Frame and send a message."""
         # Encode the message
         encoded_msg = msg.encode(self._encoding)
 
@@ -64,4 +69,5 @@ class FramedSocket:
         self._sock.sendall(framed_msg)
 
     def close(self) -> None:
+        """Close the socket."""
         self._sock.close()
