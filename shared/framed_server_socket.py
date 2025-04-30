@@ -20,9 +20,8 @@ class FramedServerSocket:
         # Bind the socket to the specified address
         self._sock.bind(self._addr)
 
-        # Client connections
-        # Keeping track, so they can be closed when the server is closing
-        self._connections: list[FramedSocket] = []
+        # Track client connections
+        self._connections = set()
 
         # Indicates that the server is closing
         self._closed = False
@@ -48,13 +47,12 @@ class FramedServerSocket:
 
         self._sock.close()
 
-        # Close all open client connections
-        for conn in self._connections:
+        # Close all connected sockets
+        for conn in list(self._connections):
             conn.close()
-        self._connections.clear()
 
     def is_closed(self) -> bool:
-        """Check if the server is closing."""
+        """Check if the server is closed."""
         return self._closed
 
     def _receive_conn_forever(
@@ -84,11 +82,14 @@ class FramedServerSocket:
     ) -> None:
         """Handle a server connection."""
         # Track the connection
-        self._connections.append(conn)
+        self._connections.add(conn)
+
+        # Automatically untrack the connection when it closes
+        original_close = conn.close
+        def close_and_untrack():
+            self._connections.discard(conn)
+            original_close()
+        conn.close = close_and_untrack
 
         # Handle the connection
         handler(conn)
-
-        # Close the connection and stop tracking it
-        conn.close()
-        self._connections.remove(conn)

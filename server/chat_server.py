@@ -74,7 +74,7 @@ class ChatServer:
                 self._forward_one(msg, recipient)
                 print(f"Private message from {username} to {recipient}")
 
-        # Continue reading messages so long as the server isn't closing
+        # Continue reading messages so long as the server isn't closed
         return not self.read_sock.is_closed()
 
     def _forward_all(self, msg: str) -> None:

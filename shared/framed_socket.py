@@ -24,6 +24,9 @@ class FramedSocket:
         self._frame_bytes = frame_bytes
         self._encoding = encoding
 
+        # Keeps track of whether the socket is closing
+        self._closing = False
+
     def receive_msg_forever(self, handler: Callable[[str], bool]) -> None:
         """Receive messages forever, passing them to a handler.
 
@@ -31,14 +34,19 @@ class FramedSocket:
         and True otherwise.
         """
         receiving = True
-        while receiving:
+        self._sock.settimeout(3)
+        while receiving and not self._closing:
             try:
                 # Receive message
                 msg = self.recv_msg()
+            # Periodically ensure the socket isn't supposed to close
+            except socket.timeout:
+                continue
             # Close socket while receiving
             except OSError:
                 break
 
+            # Keep receiving only if the handler says to
             receiving = handler(msg)
 
     def recv_msg(self) -> str:
@@ -46,7 +54,8 @@ class FramedSocket:
         # Get the expected length of the message
         msg_len = int.from_bytes(
             self._sock.recv(self._frame_bytes),
-            byteorder="big")
+            byteorder="big"
+        )
 
         # Receive until the expected length is reached
         full_msg = b""
@@ -79,10 +88,9 @@ class FramedSocket:
 
     def close(self) -> None:
         """Close the socket."""
-        # Necessary to close the socket while it's blocked and accepting
-        try:
-            self._sock.shutdown(socket.SHUT_RDWR)
-        except OSError:
-            pass
-
+        self._closing = True
         self._sock.close()
+
+    def is_closing(self) -> bool:
+        """Check if the socket is closing."""
+        return self._closing
