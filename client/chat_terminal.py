@@ -10,6 +10,7 @@ class ChatTerminal:
     """UI for the chatroom."""
 
     def __init__(self):
+        """Initialize the ChatTerminal."""
         # Interface for interacting with the terminal
         self.terminal = Terminal(self.exit)
 
@@ -30,6 +31,7 @@ class ChatTerminal:
         self._should_queue_messages = False
 
     def start(self) -> None:
+        """Start the chat terminal."""
         # Connect to the chatroom
         self.client.start()
 
@@ -40,6 +42,7 @@ class ChatTerminal:
         self._send_msg_forever()
 
     def exit(self) -> None:
+        """Exit the chat room."""
         self.client.exit()
         exit_msg = self._format_exit_message(self.client.username)
         self.terminal.clear_line()
@@ -47,6 +50,7 @@ class ChatTerminal:
         exit()
 
     def _intro(self) -> None:
+        """Print the intro text."""
         self.terminal.print_line(
             "You have entered the chatroom!\n"
             "Press enter at any time to begin inputting a message.\n"

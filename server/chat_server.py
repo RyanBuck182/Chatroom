@@ -1,3 +1,4 @@
+"""A server for a chatroom."""
 import json
 
 from config import HOST, WRITE_PORT, READ_PORT
@@ -8,6 +9,7 @@ from shared.framed_socket import FramedSocket
 class ChatServer:
 
     def __init__(self) -> None:
+        """Initialize the chat server."""
         # Sends messages to the connected clients
         self.write_sock = FramedServerSocket((HOST, WRITE_PORT))
 
