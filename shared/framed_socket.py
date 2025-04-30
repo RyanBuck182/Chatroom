@@ -3,7 +3,7 @@
 import socket
 from typing import Callable, NoReturn
 
-from config import FRAME_BYTES, ENCODING
+from shared.config import FRAME_BYTES, ENCODING
 
 
 class FramedSocket:

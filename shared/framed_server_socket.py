@@ -4,7 +4,7 @@ import socket
 import threading
 from typing import Callable, NoReturn
 
-from framed_socket import FramedSocket
+from shared.framed_socket import FramedSocket
 
 
 class FramedServerSocket:
