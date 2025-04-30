@@ -70,11 +70,15 @@ class Terminal:
 
     def wrap_color(self, msg: str, color: TerminalColor) -> str:
         """Wrap a string in ANSI color codes."""
-        return f"{color}{msg}{TerminalColor.Reset}"
+        return f"{color.value}{msg}{TerminalColor.Reset.value}"
 
     def clear_line(self) -> None:
         """Clear the current line."""
         print(f"\r{' '*self._max_line_len}\r", end="")
+
+    def clear_previous_line(self) -> None:
+        """Clear the previous line."""
+        print(f"\033[A\r{' ' * self._max_line_len}\r", end="")
 
     def cursor_up(self) -> None:
         """Move the cursor up one line."""
