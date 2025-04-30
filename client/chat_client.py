@@ -58,8 +58,7 @@ class ChatClient:
         # Start receiving messages from the server
         recv_thread = threading.Thread(
             target=self._recv_sock.receive_msg_forever,
-            args=(self._receive_msg,),
-            daemon=True
+            args=(self._receive_msg,)
         )
         recv_thread.start()
 
