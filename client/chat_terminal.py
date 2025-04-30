@@ -42,9 +42,6 @@ class ChatTerminal:
         # Disconnect from the chatroom
         self.client.exit()
 
-        # Display an outro for the user
-        self._outro()
-
     def _intro(self) -> None:
         self.terminal.print_line(
             "You have entered the chatroom!\n"
@@ -56,12 +53,10 @@ class ChatTerminal:
             "Send !exit to leave the chatroom.\n"
         )
 
-    def _outro(self) -> None:
-        self.terminal.print_line("\nThanks for chatting!")
-
     def _send_msg_forever(self) -> None:
         """Send messages from the user to the server forever."""
-        while True:
+        sending = True
+        while sending:
             # Wait till the user presses enter
             self.terminal.wait_for_enter()
             self.terminal.clear_previous_line()
@@ -73,14 +68,7 @@ class ChatTerminal:
             self._print_msg_queue()
 
             # Parse message
-            msg_dict = self._parse_user_msg(msg)
-
-            # Continue if invalid msg
-            if not msg_dict:
-                continue
-
-            # Send message
-            self.client.send_from_dict(msg_dict)
+            sending = self._parse_user_msg(msg)
 
     def _prompt_for_msg(self) -> str:
         """Gets a message from the user."""
@@ -99,37 +87,39 @@ class ChatTerminal:
         # Clear the queued messages
         self.msg_queue.clear()
 
-    def _parse_user_msg(self, msg: str) -> dict | None:
-        """Parse a user's message and return the dict needed to send it.
+    def _parse_user_msg(self, msg: str) -> bool:
+        """Parse user msg, handle it, and return whether to continue sending.
 
-        If the message is invalid, display an error message and return None.
+        If the message is invalid, display an error message.
         """
         msg = msg.strip()
 
         # Print error msg if input msg is empty or whitespace
         if not msg:
             self._print_error("ERROR: You must specify a message to send.")
-            return
+            return True
 
         # Exit the chatroom
         if msg == "!exit":
-            self.client.exit()
             exit_msg = self._format_exit_message(self.client.username)
+            self.terminal.clear_previous_line()
             self.terminal.print_line(exit_msg)
-            return
+            return False
 
         # Validate & parse private message
         if msg[0] == "@":
-            return self._parse_user_private_msg(msg)
+            self._parse_user_private_msg(msg)
+            return True
 
         # Broadcast message
         # Needs no further parsing or validation
-        return {"type": "BROADCAST", "message": msg}
+        self.client.send_broadcast(msg)
+        return True
 
-    def _parse_user_private_msg(self, msg: str) -> dict | None:
-        """Parse user's private message and return the dict needed to send it.
+    def _parse_user_private_msg(self, msg: str) -> None:
+        """Parse user private message and handle it.
 
-        If the message is invalid, display error message and return None."""
+        If the message is invalid, display error message."""
         # No recipient or message is specified
         if len(msg) == 1:
             self._print_error("ERROR: You must specify a message to send.")
@@ -164,7 +154,7 @@ class ChatTerminal:
         # Remove the username from the message to send
         send_msg = msg[recipient_end_index + 1:]
 
-        return {"type": "PRIVATE", "message": send_msg, "recipient": recipient}
+        self.client.send_private(send_msg, recipient)
 
     def _receive_message(self, raw_response: str) -> None:
         """Print or queue a received message."""
