@@ -82,7 +82,10 @@ class ChatServer:
             conn.send_msg(msg)
 
     def _forward_one(self, msg: str, recipient: str) -> None:
-        conn = self.users[recipient]
+        try:
+            conn = self.users[recipient]
+        except KeyError:
+            return
         conn.send_msg(msg)
 
     def _add_user(self, username: str, conn: FramedSocket) -> None:
