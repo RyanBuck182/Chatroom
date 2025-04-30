@@ -1,6 +1,6 @@
 import json
 
-from shared.config import HOST, WRITE_PORT, READ_PORT
+from config import HOST, WRITE_PORT, READ_PORT
 from shared.framed_server_socket import FramedServerSocket
 from shared.framed_socket import FramedSocket
 
@@ -18,6 +18,7 @@ class ChatServer:
         self.users: dict[str, FramedSocket] = dict()
 
     def start(self) -> None:
+        """Start the chat server."""
         print("Press CTRL+C at any time to close the server.")
 
         # Receive connections forever, storing them to send messages to later
@@ -78,10 +79,12 @@ class ChatServer:
         return not self.read_sock.is_closed()
 
     def _forward_all(self, msg: str) -> None:
+        """Forward a message to all clients."""
         for conn in self.users.values():
             conn.send_msg(msg)
 
     def _forward_one(self, msg: str, recipient: str) -> None:
+        """Forward a message to one client."""
         try:
             conn = self.users[recipient]
         except KeyError:
@@ -89,8 +92,10 @@ class ChatServer:
         conn.send_msg(msg)
 
     def _add_user(self, username: str, conn: FramedSocket) -> None:
+        """Add a user."""
         self.users[username] = conn
 
     def _remove_user(self, username: str) -> None:
+        """Remove a user."""
         self.users[username].close()
         self.users.pop(username)

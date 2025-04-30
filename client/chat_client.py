@@ -4,7 +4,7 @@ import json
 import threading
 from typing import Callable
 
-from shared.config import HOST, WRITE_PORT, READ_PORT
+from config import HOST, WRITE_PORT, READ_PORT
 from shared.framed_socket import FramedSocket
 
 

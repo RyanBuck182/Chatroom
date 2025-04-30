@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Callable
 
-from shared.config import MAX_LINE_LENGTH
+from config import MAX_LINE_LENGTH
 
 
 class TerminalColor(Enum):
