@@ -2,7 +2,7 @@
 
 import socket
 import threading
-from typing import Callable, NoReturn
+from typing import Callable
 
 from shared.framed_socket import FramedSocket
 
