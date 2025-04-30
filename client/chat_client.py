@@ -42,11 +42,12 @@ class ChatClient:
         self._send_start()
 
         # Start receiving messages from the server
-        threading.Thread(
+        recv_thread = threading.Thread(
             target=self._recv_sock.receive_msg_forever,
             args=(self._receive_msg,),
             daemon=True
         )
+        recv_thread.start()
 
     def exit(self):
         """Handle exiting the chatroom."""

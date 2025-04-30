@@ -74,7 +74,7 @@ class FramedSocket:
             full_msg += recv_msg
 
         # Decode and return the message
-        return full_msg.decode("utf-8")
+        return full_msg.decode(self._encoding)
 
     def send_msg(self, msg: str):
         """Frame and send a message."""
@@ -82,7 +82,7 @@ class FramedSocket:
         encoded_msg = msg.encode(self._encoding)
 
         # Frame the message
-        msg_len = len(encoded_msg).to_bytes(4, byteorder="big")
+        msg_len = len(encoded_msg).to_bytes(self._frame_bytes, byteorder="big")
         framed_msg = msg_len + encoded_msg
 
         # Send the message
@@ -91,7 +91,6 @@ class FramedSocket:
         # Socket is no longer connected
         except OSError:
             self.close()
-            pass
 
     def connect(self, addr: tuple[str, int]) -> None:
         self._sock.connect(addr)
