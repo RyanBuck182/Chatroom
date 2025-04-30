@@ -1,5 +1,4 @@
 import json
-from typing import NoReturn
 
 from shared.config import HOST, WRITE_PORT, READ_PORT
 from shared.framed_server_socket import FramedServerSocket
@@ -19,6 +18,8 @@ class ChatServer:
         self.users: dict[str, FramedSocket] = dict()
 
     def start(self) -> None:
+        print("Press CTRL+C at any time to close the server.")
+
         # Receive connections forever, storing them to send messages to later
         self.write_sock.start_server(
             connection_handler=self._handle_write_conn
@@ -29,31 +30,56 @@ class ChatServer:
             connection_handler=self._handle_read_conn
         )
 
+        # Wait until a keyboard interrupt then close
+        try:
+            while True:
+                input()
+        except KeyboardInterrupt:
+            print("Server closing...")
+            self.write_sock.close_server()
+            self.read_sock.close_server()
+
     def _handle_write_conn(self, conn: FramedSocket) -> None:
         """Handle a connection from a client's receiving socket."""
         msg = conn.recv_msg()
         msg_dict = json.loads(msg)
         username = msg_dict["sender"]
 
+        # Add to dict of connected users
         self._add_user(username, conn)
 
-    def _handle_read_conn(self, conn: FramedSocket) -> NoReturn:
-        """Handle a connection from a client's sending socket."""
-        # Receive messages from the client until they disconnect.
-        conn.receive_msg_forever(self._handle_read_msg)
+        print(f"Connection to {username} opened")
 
-    def _handle_read_msg(self, msg: str) -> None:
+    def _handle_read_conn(self, conn: FramedSocket) -> None:
+        """Handle a connection from a client's sending socket."""
+        # Receive messages from the client until they disconnect
+        conn.receive_msg_forever(self._handle_read_msg)
+        conn.close()
+
+    def _handle_read_msg(self, msg: str) -> bool:
         """Handle a message sent from a client."""
         msg_dict = json.loads(msg)
+        msg_type = msg_dict["type"]
+        username = msg_dict["sender"]
 
-        match msg_dict["type"].upper():
+        match msg_type.upper():
             case "EXIT":
-                self._remove_user(msg_dict["sender"])
+                self._remove_user(username)
                 self._forward_all(msg)
+                print(f"Connection from {username} closed")
+
+                # Stop reading messages
+                return False
             case "BROADCAST":
                 self._forward_all(msg)
+                print(f"Broadcast message from {username}")
             case "PRIVATE":
-                self._forward_one(msg, msg_dict["recipient"])
+                recipient = msg_dict["recipient"]
+                self._forward_one(msg, recipient)
+                print(f"Private message from {username} to {recipient}")
+
+        # Continue reading messages so long as the server isn't closing
+        return not self.read_sock.is_closed()
 
     def _forward_all(self, msg: str) -> None:
         for conn in self.users.values():
@@ -67,4 +93,5 @@ class ChatServer:
         self.users[username] = conn
 
     def _remove_user(self, username: str) -> None:
+        self.users[username].close()
         self.users.pop(username)

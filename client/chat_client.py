@@ -15,11 +15,19 @@ class ChatClient:
         """Initialize the chat client."""
         self.username = username
 
-        # READ_PORT because we send to where the server receives
-        self._send_sock = FramedSocket((HOST, READ_PORT))
+        # Sends messages to the server
+        self._send_sock = FramedSocket()
 
+        # Connect the send sock to the server
+        # READ_PORT because we send to where the server receives
+        self._send_sock.connect((HOST, READ_PORT))
+
+        # Receives messages from the server
+        self._recv_sock = FramedSocket()
+
+        # Connect the recv sock to the server
         # WRITE_PORT because we recv from where the server sends
-        self._recv_sock = FramedSocket((HOST, WRITE_PORT))
+        self._recv_sock.connect((HOST, WRITE_PORT))
 
         # Callbacks for when a message is received
         self._recv_msg_listeners = []

@@ -15,25 +15,31 @@ class FramedSocket:
 
     def __init__(
             self,
-            addr: tuple[str, int],
             sock: socket.socket = None,
             frame_bytes: int = FRAME_BYTES,
             encoding: str = ENCODING
     ) -> None:
         """Initialize the FramedSocket."""
-        self._addr = addr
         self._sock = sock or socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._frame_bytes = frame_bytes
         self._encoding = encoding
 
-        # Connect to the specified address
-        self._sock.connect(self._addr)
+    def receive_msg_forever(self, handler: Callable[[str], bool]) -> None:
+        """Receive messages forever, passing them to a handler.
 
-    def receive_msg_forever(self, handler: Callable[[str], None]) -> NoReturn:
-        """Receive messages forever, passing them to a handler."""
-        while True:
-            msg = self.recv_msg()
-            handler(msg)
+        The handler takes the msg as input and returns False to stop receiving
+        and True otherwise.
+        """
+        receiving = True
+        while receiving:
+            try:
+                # Receive message
+                msg = self.recv_msg()
+            # Close socket while receiving
+            except OSError:
+                break
+
+            receiving = handler(msg)
 
     def recv_msg(self) -> str:
         """Receive an entire framed message."""
@@ -68,6 +74,15 @@ class FramedSocket:
         # Send the message
         self._sock.sendall(framed_msg)
 
+    def connect(self, addr: tuple[str, int]) -> None:
+        self._sock.connect(addr)
+
     def close(self) -> None:
         """Close the socket."""
+        # Necessary to close the socket while it's blocked and accepting
+        try:
+            self._sock.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
+
         self._sock.close()
