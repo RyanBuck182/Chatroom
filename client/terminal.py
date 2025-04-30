@@ -38,7 +38,7 @@ class Terminal:
 
     def print_line(self, msg: str, color: TerminalColor = None) -> None:
         """Print a message with a terminating newline."""
-        self.print_inlines(msg, color)
+        self.print_inline(msg, color)
         print()
 
     def replace_current_line(
@@ -48,7 +48,7 @@ class Terminal:
 
         Does not print a terminating newline."""
         self.clear_line()
-        self.print_inlines(msg, color)
+        self.print_inline(msg, color)
 
     def replace_previous_line(
             self, msg: str, color: TerminalColor = None
@@ -90,12 +90,22 @@ class Terminal:
         if len(msg) <= self._max_line_len:
             return msg
 
+        # If there are multiple lines in the message, handle each separately
+        if "\n" in msg:
+            lines = msg.split('\n')
+            parts = []
+            for line in lines:
+                split_line = self._split_msg(line)
+                parts.append(split_line)
+            return "\n".join(parts)
+
         # Split the message into multiple lines
         lines = []
         while len(msg) > self._max_line_len:
-            line = msg[:self._max_line_len+1]
-            msg = msg[self._max_line_len+1:]
-            lines.append(line)
+            split_line = msg[:self._max_line_len + 1]
+            msg = msg[self._max_line_len + 1:]
+            lines.append(split_line)
+        lines.append(msg)
 
-        # Return the msg split into different lines
+        # Return the new split msg
         return "\n".join(lines)
