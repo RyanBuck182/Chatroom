@@ -60,6 +60,9 @@ class ChatServer:
         msg_dict = json.loads(msg)
         username = msg_dict["sender"]
 
+        # Forward join msg to all clients (except the new user)
+        self._forward_all(msg)
+
         # Add to dict of connected users
         self._add_user(username, conn)
 
