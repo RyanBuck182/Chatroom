@@ -81,10 +81,11 @@ class ChatClient:
             message=msg,
         )
 
-    def _receive_msg(self, msg: str) -> None:
+    def _receive_msg(self, msg: str) -> bool:
         """Call receive message listeners when receiving a message."""
         for callback in self._recv_msg_listeners:
             callback(msg)
+        return True
 
     def _send_start(self) -> None:
         """Send a start message to the server."""

@@ -1,6 +1,8 @@
 """Defines a Terminal class to assist with terminal interaction."""
 
 from enum import Enum
+from typing import Callable
+
 from shared.config import MAX_LINE_LENGTH
 
 
@@ -20,8 +22,13 @@ class TerminalColor(Enum):
 class Terminal:
     """Helpful interface for interaction with the terminal."""
 
-    def __init__(self, max_line_len: int = MAX_LINE_LENGTH) -> None:
+    def __init__(
+            self,
+            interrupt_handler: Callable[[], None],
+            max_line_len: int = MAX_LINE_LENGTH
+    ) -> None:
         """Initialize an interface for the terminal."""
+        self._interrupt_handler = interrupt_handler
         self._max_line_len = max_line_len
 
     def print_inline(self, msg: str, color: TerminalColor = None) -> None:
@@ -61,12 +68,21 @@ class Terminal:
 
     def wait_for_enter(self, prompt: str = "") -> None:
         """Wait for the user to press enter."""
-        input(prompt)
+        try:
+            input(prompt)
+        except KeyboardInterrupt:
+            self._interrupt_handler()
+
         return
 
     def wait_for_input(self, prompt: str = "") -> str:
         """Wait for and return input."""
-        return input(prompt)
+        try:
+            return input(prompt)
+        except KeyboardInterrupt:
+            self._interrupt_handler()
+
+        return ""
 
     def wrap_color(self, msg: str, color: TerminalColor) -> str:
         """Wrap a string in ANSI color codes."""

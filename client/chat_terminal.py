@@ -11,7 +11,7 @@ class ChatTerminal:
 
     def __init__(self):
         # Interface for interacting with the terminal
-        self.terminal = Terminal()
+        self.terminal = Terminal(self.exit)
 
         # Ask the user for their username
         username = self._ask_username()
@@ -39,8 +39,12 @@ class ChatTerminal:
         # Repeatedly waits for user to send msg until they exit
         self._send_msg_forever()
 
-        # Disconnect from the chatroom
+    def exit(self) -> None:
         self.client.exit()
+        exit_msg = self._format_exit_message(self.client.username)
+        self.terminal.clear_line()
+        self.terminal.print_line(exit_msg)
+        exit()
 
     def _intro(self) -> None:
         self.terminal.print_line(
@@ -72,13 +76,17 @@ class ChatTerminal:
 
     def _prompt_for_msg(self) -> str:
         """Gets a message from the user."""
+        self._enable_message_queue()
         msg = self.terminal.wait_for_input("> ")
+        self._disable_message_queue()
+
+        # Clear the user's message to make room
+        self.terminal.clear_previous_line()
         return msg
 
     def _print_msg_queue(self) -> None:
         """Print the message queue"""
-        # Clear the user's message to make room for the queue
-        self.terminal.clear_line()
+        # self.terminal.clear_line()
 
         # Print the queued messages
         for msg in self.msg_queue:
@@ -101,9 +109,7 @@ class ChatTerminal:
 
         # Exit the chatroom
         if msg == "!exit":
-            exit_msg = self._format_exit_message(self.client.username)
-            self.terminal.clear_previous_line()
-            self.terminal.print_line(exit_msg)
+            self.exit()
             return False
 
         # Validate & parse private message
@@ -155,6 +161,9 @@ class ChatTerminal:
         send_msg = msg[recipient_end_index + 1:]
 
         self.client.send_private(send_msg, recipient)
+        private_msg = self._format_private_message(send_msg, recipient)
+        self.terminal.clear_line()
+        self.terminal.print_line(private_msg)
 
     def _receive_message(self, raw_response: str) -> None:
         """Print or queue a received message."""
@@ -165,7 +174,7 @@ class ChatTerminal:
             self.msg_queue.append(msg)
         # Print message
         else:
-            self.terminal.replace_current_line(msg)
+            self.terminal.print_line(msg)
 
     def _parse_received_message(self, raw_response: str) -> str:
         """Parse and format a message for display."""
@@ -227,6 +236,7 @@ class ChatTerminal:
                 self.terminal.print_line("Username must be alphanumeric!\n")
                 valid_username = False
 
+        self.terminal.print_line("")
         return username
 
     def _enable_message_queue(self) -> None:
