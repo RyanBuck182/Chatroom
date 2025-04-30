@@ -21,14 +21,10 @@ class ChatServer:
         print("Press CTRL+C at any time to close the server.")
 
         # Receive connections forever, storing them to send messages to later
-        self.write_sock.start_server(
-            connection_handler=self._handle_write_conn
-        )
+        self.write_sock.start_server(conn_handler=self._handle_write_conn)
 
         # Receive connections forever, reading messages from them
-        self.read_sock.start_server(
-            connection_handler=self._handle_read_conn
-        )
+        self.read_sock.start_server(conn_handler=self._handle_read_conn)
 
         # Wait until a keyboard interrupt then close
         try:

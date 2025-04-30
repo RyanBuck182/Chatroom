@@ -28,11 +28,11 @@ class FramedServerSocket:
         self._closed = False
 
     def start_server(
-            self, connection_handler: Callable[[FramedSocket], None]
+            self, conn_handler: Callable[[FramedSocket], None]
     ) -> None:
         """Start receiving connections, passing them to a handler."""
         recv_thread = threading.Thread(
-            target=self._receive_conn_forever, args=(connection_handler,)
+            target=self._receive_conn_forever, args=(conn_handler,)
         )
         recv_thread.start()
 
