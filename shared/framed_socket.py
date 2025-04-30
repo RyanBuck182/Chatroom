@@ -1,7 +1,7 @@
 """Defines FramedSocket, a length prefixed TCP socket."""
 
 import socket
-from typing import Callable, NoReturn
+from typing import Callable
 
 from shared.config import FRAME_BYTES, ENCODING
 
@@ -24,8 +24,8 @@ class FramedSocket:
         self._frame_bytes = frame_bytes
         self._encoding = encoding
 
-        # Keeps track of whether the socket is closing
-        self._closing = False
+        # Keeps track of whether the socket is closed
+        self._closed = False
 
     def receive_msg_forever(self, handler: Callable[[str], bool]) -> None:
         """Receive messages forever, passing them to a handler.
@@ -35,15 +35,16 @@ class FramedSocket:
         """
         receiving = True
         self._sock.settimeout(3)
-        while receiving and not self._closing:
+        while receiving and not self._closed:
             try:
                 # Receive message
                 msg = self.recv_msg()
-            # Periodically ensure the socket isn't supposed to close
+            # Periodically check if the socket is closed
             except socket.timeout:
                 continue
-            # Close socket while receiving
-            except OSError:
+            # Socket closed while receiving
+            except (OSError, self.EndOfMessageError):
+                self.close()
                 break
 
             # Keep receiving only if the handler says to
@@ -52,10 +53,14 @@ class FramedSocket:
     def recv_msg(self) -> str:
         """Receive an entire framed message."""
         # Get the expected length of the message
-        msg_len = int.from_bytes(
-            self._sock.recv(self._frame_bytes),
-            byteorder="big"
-        )
+        raw_msg_len = self._sock.recv(self._frame_bytes)
+
+        # Socket was closed remotely if nothing is received
+        if not raw_msg_len:
+            raise OSError("Socket disconnected from remote.")
+
+        # Decode the expected length of the message
+        msg_len = int.from_bytes(raw_msg_len, byteorder="big")
 
         # Receive until the expected length is reached
         full_msg = b""
@@ -81,16 +86,17 @@ class FramedSocket:
         framed_msg = msg_len + encoded_msg
 
         # Send the message
-        self._sock.sendall(framed_msg)
+        try:
+            self._sock.sendall(framed_msg)
+        # Socket is no longer connected
+        except OSError:
+            self.close()
+            pass
 
     def connect(self, addr: tuple[str, int]) -> None:
         self._sock.connect(addr)
 
     def close(self) -> None:
         """Close the socket."""
-        self._closing = True
+        self._closed = True
         self._sock.close()
-
-    def is_closing(self) -> bool:
-        """Check if the socket is closing."""
-        return self._closing

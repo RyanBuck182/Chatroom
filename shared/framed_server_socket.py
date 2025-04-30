@@ -64,7 +64,7 @@ class FramedServerSocket:
             # Receive connection
             try:
                 conn, addr = self._sock.accept()
-            # Close socket while accepting
+            # Socket closed while accepting
             except OSError:
                 break
 
