@@ -93,6 +93,7 @@ class FramedSocket:
             self.close()
 
     def connect(self, addr: tuple[str, int]) -> None:
+        """Connect to the supplied address."""
         self._sock.connect(addr)
 
     def close(self) -> None:

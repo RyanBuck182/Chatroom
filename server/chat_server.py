@@ -7,6 +7,7 @@ from shared.framed_socket import FramedSocket
 
 
 class ChatServer:
+    """Chatroom server."""
 
     def __init__(self) -> None:
         """Initialize the chat server."""
