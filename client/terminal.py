@@ -1,5 +1,6 @@
 """Defines a Terminal class to assist with terminal interaction."""
 
+import os
 from enum import Enum
 from typing import Callable
 
@@ -29,7 +30,7 @@ class Terminal:
     ) -> None:
         """Initialize an interface for the terminal."""
         self._interrupt_handler = interrupt_handler
-        self._max_line_len = max_line_len
+        self._max_line_len = min(max_line_len, os.get_terminal_size().columns)
 
     def print_inline(self, msg: str, color: TerminalColor = None) -> None:
         """Print a message without a terminating newline."""
