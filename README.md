@@ -1,5 +1,7 @@
 # Chatroom
 
+![Chatroom Class Diagram](.\CLASS_DIAGRAM.png)
+
 ## Setup
 
 First, open a few terminals and navigate to the `\Chatroom` directory.
