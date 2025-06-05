@@ -1,6 +1,6 @@
 # Chatroom
 
-![Chatroom Class Diagram](.\CLASS_DIAGRAM.png)
+![Chatroom Class Diagram](CLASS_DIAGRAM.png)
 
 ## Setup
 
