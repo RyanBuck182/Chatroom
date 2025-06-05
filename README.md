@@ -2,7 +2,9 @@
 
 ## Setup
 
-First, open a few terminals and navigate to the `\Chatroom` directory. It's recommended that you do this in a terminal outside pycharm (such as powershell or cmd prompt) otherwise it'll mess with the way my output is formatted.
+First, open a few terminals and navigate to the `\Chatroom` directory.
+It's recommended that you do this in a terminal outside pycharm (such as powershell or cmd prompt) otherwise it'll mess with the way the output is formatted.
+Resizing the terminal while the script is running may mess with formatting.
 
 ### Server
 
